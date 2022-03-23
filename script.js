@@ -95,7 +95,7 @@ function getUserTaksFortheDay(userid, currentDate) {
       }
     }
   }
-  //str = str == "" ? "0" : str;
+
   return str;
 }
 
@@ -113,6 +113,10 @@ function renderBacklog() {
   title.innerHTML = "BACKLOG";
   title.id = "backlogheader";
   backlogdiv.appendChild(title);
+
+  let txtbox = document.createElement("input");
+  txtbox.id = "search";
+  backlogdiv.appendChild(txtbox);
 
   for (let i = 0; i < backlog.length; i++) {
     let taskdiv = document.createElement("div");
@@ -214,9 +218,44 @@ function dnd(ball) {
   };
 }
 
+function renderButtons(calendarDiv) {
+  let buttondiv = document.createElement("div");
+  buttondiv.id = "btns";
+  calendarDiv.appendChild(buttondiv);
+
+  for (let i = 0; i < CalLen; i++) {
+    //let btn = document.getElementById("btns");
+    let newdiv = document.createElement("div");
+
+    if (i !== 1 && i !== CalLen - 1) {
+      newdiv.style.transform = "scale(0)";
+    }
+
+    if (i == 1) {
+      newdiv.innerHTML = "LEFT";
+      newdiv.id = "left";
+    }
+
+    if (i == CalLen - 1) {
+      newdiv.innerHTML = "RIGHT";
+      newdiv.id = "right";
+    }
+    buttondiv.appendChild(newdiv);
+  }
+
+  let leftButton = document.getElementById("right");
+  leftButton.addEventListener("click", shiftCalFwd);
+
+  let rightButton = document.getElementById("left");
+  rightButton.addEventListener("click", shiftCalBckwd);
+}
+
 function createCal(weekCounter) {
   let calendarDiv = document.getElementById("cc");
   calendarDiv.innerHTML = ""; //чистим содержимое
+
+  renderButtons(calendarDiv);
+
   let div = document.createElement("div");
   div.id = "header";
   calendarDiv.appendChild(div);
@@ -231,8 +270,9 @@ function createCal(weekCounter) {
 
     if (i !== 0) {
       dateArray.push(today);
-      //newdiv.innerHTML = today.getDate() + "." + (today.getMonth() + 1);
       newdiv.innerHTML = getHeaderDate(today);
+    } else {
+      newdiv.style.transform = "scale(0)";
     }
     header.appendChild(newdiv);
   }
@@ -247,14 +287,12 @@ function createCal(weekCounter) {
     for (let j = 0; j < CalLen; j++) {
       let div = document.createElement("div");
       div.id = "divfortask-" + j + "-" + i;
+      div.setAttribute("userid", +i + 1);
       if (j !== 0) {
-        //div.innerHTML = Users[i].id;
-        div.innerHTML = getUserTaksFortheDay(Users[i].id, dateArray[j]);
-        div.setAttribute("userid", +i + 1);
         div.setAttribute("date", getDateForAttr(dateArray[j]));
         div.className = "droppable";
+        renderTasksforUser(dateArray[j], Users[i].id, div);
       } else {
-        div.setAttribute("userid", +i + 1);
         div.innerHTML = Users[i].firstName;
         div.className = "droppableUSER";
       }
@@ -263,13 +301,26 @@ function createCal(weekCounter) {
   }
 }
 
+function renderTasksforUser(currentDate, userid, div) {
+  let ustasks = userMap[userid];
+  let curdateSTR = getDateForAttr(currentDate);
+  if (ustasks.length !== 0) {
+    for (let i = 0; i < ustasks.length; i++) {
+      if (
+        ustasks[i].planStartDate <= curdateSTR &&
+        curdateSTR <= ustasks[i].planEndDate
+      ) {
+        let tsk = document.createElement("div");
+        tsk.innerHTML = ustasks[i].subject;
+        tsk.className = "hide";
+        tsk.title = ustasks[i].planStartDate + " - " + ustasks[i].planEndDate;
+        div.appendChild(tsk);
+      }
+    }
+  }
+}
+
 window.onload = function () {
-  let leftButton = document.getElementById("right");
-  leftButton.addEventListener("click", shiftCalFwd);
-
-  let rightButton = document.getElementById("left");
-  rightButton.addEventListener("click", shiftCalBckwd);
-
   for (let i = 0; i < Users.length; i++) {
     userMap[Users[i].id] = [];
   }
@@ -285,4 +336,10 @@ window.onload = function () {
   renderBacklog();
 
   createCal(weekCounter);
+
+  let leftButton = document.getElementById("right");
+  leftButton.addEventListener("click", shiftCalFwd);
+
+  let rightButton = document.getElementById("left");
+  rightButton.addEventListener("click", shiftCalBckwd);
 };
