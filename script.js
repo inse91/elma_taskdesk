@@ -107,14 +107,15 @@ function renderBacklog(target, keyWord) {
     if (event.key === "Enter") {
       event.preventDefault();
       renderBacklog(OPTIONALCONTAINER, txtbox.value);
-    } else {
-      //txtbox.value += event.key;
+      let txtbox = document.querySelector("#search");
+      txtbox.focus();
+      txtbox.selectionStart = x.value.length;
     }
   });
 
   for (let i = 0; i < BACKLOG.length; i++) {
-    taskName = BACKLOG[i].subject;
-    if (taskName.includes(keyWord)) {
+    taskName = BACKLOG[i].subject.toLowerCase();
+    if (taskName.includes(keyWord.toLowerCase())) {
       let taskdiv = document.createElement("div");
       taskdiv.setAttribute("taskid", BACKLOG[i].id);
       taskdiv.setAttribute("i", i);
