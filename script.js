@@ -79,7 +79,7 @@ function parseDate(date) {
   return outputDate;
 }
 
-function renderBacklog(target) {
+function renderBacklog(target, keyWord) {
   //let target = document.querySelector("#optional");
 
   let backlogdiv = document.querySelector("#backlog");
@@ -100,23 +100,36 @@ function renderBacklog(target) {
 
   let txtbox = document.createElement("input");
   txtbox.id = "search";
+  txtbox.defaultValue = keyWord;
   backlogdiv.appendChild(txtbox);
 
-  for (let i = 0; i < BACKLOG.length; i++) {
-    let taskdiv = document.createElement("div");
-    taskdiv.setAttribute("taskid", BACKLOG[i].id);
-    taskdiv.setAttribute("i", i);
-    taskdiv.id = "task" + (i + 1);
-    taskdiv.innerHTML = BACKLOG[i].subject;
-    taskdiv.draggable = true;
-    taskdiv.className = "backlog-task";
-    taskdiv.setAttribute(
-      "hint",
-      BACKLOG[i].planStartDate + " - " + BACKLOG[i].planEndDate
-    );
+  txtbox.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      renderBacklog(OPTIONALCONTAINER, txtbox.value);
+    } else {
+      //txtbox.value += event.key;
+    }
+  });
 
-    backlogdiv.appendChild(taskdiv);
-    applyDragAndDrop(taskdiv);
+  for (let i = 0; i < BACKLOG.length; i++) {
+    taskName = BACKLOG[i].subject;
+    if (taskName.includes(keyWord)) {
+      let taskdiv = document.createElement("div");
+      taskdiv.setAttribute("taskid", BACKLOG[i].id);
+      taskdiv.setAttribute("i", i);
+      taskdiv.id = "task" + (i + 1);
+      taskdiv.innerHTML = BACKLOG[i].subject;
+      taskdiv.draggable = true;
+      taskdiv.className = "backlog-task";
+      taskdiv.setAttribute(
+        "hint",
+        BACKLOG[i].planStartDate + " - " + BACKLOG[i].planEndDate
+      );
+
+      backlogdiv.appendChild(taskdiv);
+      applyDragAndDrop(taskdiv);
+    }
   }
 }
 
@@ -128,7 +141,7 @@ function afterMouseUpOnTask(taskIndex, userIndex, date) {
 
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  renderBacklog(OPTIONALCONTAINER);
+  renderBacklog(OPTIONALCONTAINER, "");
 
   createCalendar(weekCounter, MAINCONTAINER);
 }
@@ -136,7 +149,7 @@ function afterMouseUpOnTask(taskIndex, userIndex, date) {
 function afterMouseUpOnUser(taskIndex, userIndex) {
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  renderBacklog(OPTIONALCONTAINER);
+  renderBacklog(OPTIONALCONTAINER, "");
 
   createCalendar(weekCounter, MAINCONTAINER);
 }
@@ -148,6 +161,7 @@ function applyDragAndDrop(elem) {
 
     elemClone.style.position = "absolute";
     elemClone.style.zIndex = 1000;
+    elemClone.className = "backlog-task-dragging";
 
     moveAt(event.pageX, event.pageY);
 
@@ -232,8 +246,6 @@ function createCalendar(weekCounter, target) {
   calendardiv.id = "calendar";
   target.appendChild(calendardiv);
 
-  //renderButtons(calendardiv);
-
   let headerdiv = document.createElement("div");
   headerdiv.id = "header";
   headerdiv.className = "toprow";
@@ -311,7 +323,7 @@ window.onload = function () {
   MAINCONTAINER = document.querySelector("#main");
   OPTIONALCONTAINER = document.querySelector("#optional");
 
-  renderBacklog(OPTIONALCONTAINER);
+  renderBacklog(OPTIONALCONTAINER, "");
 
   createControlPannel(MAINCONTAINER);
   createCalendar(weekCounter, MAINCONTAINER);

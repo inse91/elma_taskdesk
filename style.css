@@ -22,7 +22,7 @@ body {
   justify-content: stretch;
   grid-auto-flow: column;
   display: grid;
-  grid-template-columns: 100px 130px 130px 130px 130px 130px 130px 130px;
+  grid-template-columns: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%;
   height: 100px + 1fr;
   margin: 3px;
   background-color: darkslategray;
@@ -32,7 +32,7 @@ body {
   justify-content: stretch;
   grid-auto-flow: column;
   display: grid;
-  grid-template-columns: 100px 130px 130px 130px 130px 130px 130px 130px;
+  grid-template-columns: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%;
   height: 100px + 1fr;
   min-height: 60px;
   margin: 5px;
@@ -40,7 +40,8 @@ body {
 }
 
 .droppable,
-.droppableUSER {
+.droppableUSER,
+.header-date {
   justify-content: stretch;
   align-content: stretch;
   margin: 5px;
@@ -65,7 +66,7 @@ body {
 
 #backlog {
   display: grid;
-  grid-template-rows: 100px;
+  grid-template-rows: auto;
   background-color: gray;
 }
 
@@ -76,6 +77,23 @@ body {
   text-align: center;
   text-justify: center;
   cursor: pointer;
+  min-height: 30px;
+  font-size: 20px;
+}
+
+.backlog-task:hover {
+  font-size: 15px;
+}
+
+.backlog-task-dragging {
+  position: relative;
+  width: 320px;
+  border: 0px;
+  text-align: center;
+  text-justify: center;
+  cursor: pointer;
+  min-height: 30px;
+  font-size: 20px;
 }
 
 .backlog-task:hover::after {
@@ -83,9 +101,10 @@ body {
   position: absolute;
   left: 0;
   bottom: 0;
+
   text-decoration: transparent;
   color: black;
-  text-align: right;
+  text-align: center;
 
   font-size: 14px;
   padding: 0px 0;
