@@ -8,6 +8,9 @@ const BACKLOG = [];
 const USERMAP = new Map();
 const CALENDARSIZE = 8; //число столбцов
 
+let MAINCONTAINER;
+let OPTIONALCONTAINER;
+
 let weekCounter = 0;
 
 function getDataFromURL(url) {
@@ -25,11 +28,11 @@ function getDataFromURL(url) {
 
 function shiftCalendarForwards() {
   weekCounter++;
-  createCal(weekCounter);
+  createCalendar(weekCounter, MAINCONTAINER);
 }
 function shiftCalendarBackwards() {
   weekCounter--;
-  createCal(weekCounter);
+  createCalendar(weekCounter, MAINCONTAINER);
 }
 
 function getHeaderDate(date) {
@@ -76,8 +79,18 @@ function parseDate(date) {
   return outputDate;
 }
 
-function renderBacklog() {
-  let backlogdiv = document.getElementById("backlog");
+function renderBacklog(target) {
+  //let target = document.querySelector("#optional");
+
+  let backlogdiv = document.querySelector("#backlog");
+  if (backlogdiv) {
+    backlogdiv.remove();
+  }
+
+  backlogdiv = document.createElement("div");
+  backlogdiv.id = "backlog";
+  target.appendChild(backlogdiv);
+
   backlogdiv.innerHTML = "";
 
   let title = document.createElement("div");
@@ -96,6 +109,7 @@ function renderBacklog() {
     taskdiv.id = "task" + (i + 1);
     taskdiv.innerHTML = BACKLOG[i].subject;
     taskdiv.draggable = true;
+    taskdiv.className = "backlog-task";
     taskdiv.setAttribute(
       "hint",
       BACKLOG[i].planStartDate + " - " + BACKLOG[i].planEndDate
@@ -114,32 +128,32 @@ function afterMouseUpOnTask(taskIndex, userIndex, date) {
 
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  renderBacklog();
+  renderBacklog(OPTIONALCONTAINER);
 
-  createCal(weekCounter);
+  createCalendar(weekCounter, MAINCONTAINER);
 }
 
 function afterMouseUpOnUser(taskIndex, userIndex) {
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  renderBacklog();
+  renderBacklog(OPTIONALCONTAINER);
 
-  createCal(weekCounter);
+  createCalendar(weekCounter, MAINCONTAINER);
 }
 
-function applyDragAndDrop(target) {
-  target.onmousedown = function (event) {
-    targetClone = target.cloneNode(true);
-    document.body.append(targetClone);
+function applyDragAndDrop(elem) {
+  elem.onmousedown = function (event) {
+    elemClone = elem.cloneNode(true);
+    document.body.append(elemClone);
 
-    targetClone.style.position = "absolute";
-    targetClone.style.zIndex = 1000;
+    elemClone.style.position = "absolute";
+    elemClone.style.zIndex = 1000;
 
     moveAt(event.pageX, event.pageY);
 
     function moveAt(pageX, pageY) {
-      targetClone.style.left = pageX - targetClone.offsetWidth / 2 + "px";
-      targetClone.style.top = pageY - targetClone.offsetHeight / 2 + "px";
+      elemClone.style.left = pageX - elemClone.offsetWidth / 2 + "px";
+      elemClone.style.top = pageY - elemClone.offsetHeight / 2 + "px";
     }
 
     function onMouseMove(event) {
@@ -148,92 +162,88 @@ function applyDragAndDrop(target) {
 
     document.addEventListener("mousemove", onMouseMove);
 
-    targetClone.onmouseup = function (event) {
-      targetClone.hidden = true;
+    elemClone.onmouseup = function (event) {
+      elemClone.hidden = true;
 
-      let calnendarTasks = document.getElementsByClassName("hide");
+      let calnendarTasks = document.querySelectorAll(".calendar-task");
       for (let elem of calnendarTasks) {
         elem.style.transform = "scale(0)";
       }
 
-      let currentElem = document.elementFromPoint(event.clientX, event.clientY);
+      let target = document.elementFromPoint(event.clientX, event.clientY);
 
       for (let elem of calnendarTasks) {
         elem.style.transform = "scale(1)";
       }
 
-      if (currentElem.className == "droppable") {
-        let taskIndex = target.getAttribute("i");
-        let userIndex = currentElem.getAttribute("userid");
-        let date = currentElem.getAttribute("date");
+      if (target.className == "droppable") {
+        let taskIndex = elem.getAttribute("i");
+        let userIndex = target.getAttribute("userid");
+        let date = target.getAttribute("date");
 
         afterMouseUpOnTask(taskIndex, userIndex, date);
-      } else if (currentElem.className == "droppableUSER") {
-        let userIndex = currentElem.getAttribute("userid");
-        let taskIndex = target.getAttribute("i");
+      } else if (target.className == "droppableUSER") {
+        let userIndex = target.getAttribute("userid");
+        let taskIndex = elem.getAttribute("i");
 
         afterMouseUpOnUser(taskIndex, userIndex);
       }
-      targetClone.remove();
+      elemClone.remove();
 
-      targetClone.onmouseup = null;
+      elemClone.onmouseup = null;
     };
 
-    targetClone.ondragstart = function () {
+    elemClone.ondragstart = function () {
       return false;
     };
-    target.ondragstart = function () {
+    elem.ondragstart = function () {
       return false;
     };
   };
 }
 
-function renderButtons(calendarDiv) {
+function createControlPannel(target) {
   let buttondiv = document.createElement("div");
   buttondiv.id = "buttons";
-  calendarDiv.appendChild(buttondiv);
+  target.appendChild(buttondiv);
 
-  for (let i = 0; i < CALENDARSIZE; i++) {
-    let newdiv = document.createElement("div");
+  let leftButton = document.createElement("div");
+  buttondiv.appendChild(leftButton);
+  leftButton.innerHTML = "LEFT";
+  leftButton.id = "left";
+  leftButton.className = "button";
+  leftButton.addEventListener("click", shiftCalendarBackwards);
 
-    if (i !== 1 && i !== CALENDARSIZE - 1) {
-      newdiv.style.transform = "scale(0)";
-    }
-
-    if (i == 1) {
-      newdiv.innerHTML = "LEFT";
-      newdiv.id = "left";
-    }
-
-    if (i == CALENDARSIZE - 1) {
-      newdiv.innerHTML = "RIGHT";
-      newdiv.id = "right";
-    }
-    buttondiv.appendChild(newdiv);
-  }
-
-  let leftButton = document.getElementById("right");
-  leftButton.addEventListener("click", shiftCalendarForwards);
-
-  let rightButton = document.getElementById("left");
-  rightButton.addEventListener("click", shiftCalendarBackwards);
+  let rightButton = document.createElement("div");
+  buttondiv.appendChild(rightButton);
+  rightButton.innerHTML = "RIGHT";
+  rightButton.className = "button";
+  rightButton.id = "right";
+  rightButton.addEventListener("click", shiftCalendarForwards);
 }
 
-function createCal(weekCounter) {
-  let calendardiv = document.getElementById("calendar");
-  calendardiv.innerHTML = ""; //чистим содержимое
+function createCalendar(weekCounter, target) {
+  let calendar = document.querySelector("#calendar");
+  if (calendar) {
+    calendar.remove();
+  }
 
-  renderButtons(calendardiv);
+  let calendardiv = document.createElement("div");
+  calendardiv.id = "calendar";
+  target.appendChild(calendardiv);
 
-  let div = document.createElement("div");
-  div.id = "header";
-  calendardiv.appendChild(div);
+  //renderButtons(calendardiv);
+
+  let headerdiv = document.createElement("div");
+  headerdiv.id = "header";
+  headerdiv.className = "toprow";
+  calendardiv.appendChild(headerdiv);
 
   let dateArray = [""];
 
   for (let i = 0; i < CALENDARSIZE; i++) {
-    let header = document.getElementById("header");
     let newdiv = document.createElement("div");
+    newdiv.className = "header-date";
     let today = new Date();
     today.setDate(today.getDate() - today.getDay() + i + 7 * weekCounter);
 
@@ -243,16 +253,15 @@ function createCal(weekCounter) {
     } else {
       newdiv.style.transform = "scale(0)";
     }
-    header.appendChild(newdiv);
+    headerdiv.appendChild(newdiv);
   }
 
   for (let i = 0; i < USERS.length; i++) {
-    let newdiv = document.createElement("div");
-    let uname = "user" + USERS[i].id;
-    newdiv.id = uname;
-    calendardiv.appendChild(newdiv);
+    let rowdiv = document.createElement("div");
+    rowdiv.className = "row";
+    //rowdiv.id = "user" + USERS[i].id;
+    calendardiv.appendChild(rowdiv);
 
-    let rowdiv = document.getElementById(uname);
     for (let j = 0; j < CALENDARSIZE; j++) {
       let div = document.createElement("div");
       div.setAttribute("userid", +i + 1);
@@ -271,15 +280,18 @@ function createCal(weekCounter) {
 
 function renderTasksforUser(currentDate, userID, target) {
   let tasks = USERMAP[userID];
-  let curdateSTR = getDateForAttr(currentDate);
+  let dateInString = getDateForAttr(currentDate);
   if (tasks.length !== 0) {
     for (let task of tasks) {
-      if (task.planStartDate <= curdateSTR && curdateSTR <= task.planEndDate) {
-        let newtask = document.createElement("div");
-        newtask.innerHTML = task.subject;
-        newtask.className = "hide";
-        newtask.title = task.planStartDate + " - " + task.planEndDate;
-        target.appendChild(newtask);
+      if (
+        task.planStartDate <= dateInString &&
+        dateInString <= task.planEndDate
+      ) {
+        let newTask = document.createElement("div");
+        newTask.innerHTML = task.subject;
+        newTask.className = "calendar-task";
+        newTask.title = task.planStartDate + " - " + task.planEndDate;
+        target.appendChild(newTask);
       }
     }
   }
@@ -296,13 +308,11 @@ window.onload = function () {
     task.executor ? USERMAP[task.executor].push(task) : BACKLOG.push(task);
   }
 
-  renderBacklog();
+  MAINCONTAINER = document.querySelector("#main");
+  OPTIONALCONTAINER = document.querySelector("#optional");
 
-  createCal(weekCounter);
+  renderBacklog(OPTIONALCONTAINER);
 
-  let leftButton = document.getElementById("right");
-  leftButton.addEventListener("click", shiftCalendarForwards);
-
-  let rightButton = document.getElementById("left");
-  rightButton.addEventListener("click", shiftCalendarBackwards);
+  createControlPannel(MAINCONTAINER);
+  createCalendar(weekCounter, MAINCONTAINER);
 };
