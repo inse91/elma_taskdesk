@@ -1,4 +1,4 @@
-#cc > div {
+#calendar > div {
   justify-content: stretch;
   grid-auto-flow: column;
   display: grid;
@@ -6,7 +6,7 @@
   height: 30px + 1fr;
   margin: 5px;
 }
-#cc > div > div {
+#calendar > div > div {
   justify-content: stretch;
   align-content: stretch;
   margin: 5px;
@@ -22,13 +22,8 @@
   justify-content: stretch;
 }
 
-.buttons {
-  display: grid;
-  grid-auto-flow: column;
-  grid-gap: 10px;
-}
-
 body {
+  background-color: grey;
   margin: 40px;
   display: grid;
   grid-template-columns: auto 320px;
@@ -70,7 +65,7 @@ body {
   cursor: pointer;
 }
 
-@media screen and (max-width: 960px) {
+@media screen and (max-width: 800px) {
   #backlog {
     display: none;
   }
