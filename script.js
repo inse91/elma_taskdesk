@@ -107,9 +107,9 @@ function renderBacklog(target, keyWord) {
     if (event.key === "Enter") {
       event.preventDefault();
       renderBacklog(OPTIONALCONTAINER, txtbox.value);
-      let txtbox = document.querySelector("#search");
+      txtbox = document.querySelector("#search");
       txtbox.focus();
-      txtbox.selectionStart = x.value.length;
+      txtbox.selectionStart = txtbox.value.length;
     }
   });
 
