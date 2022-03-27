@@ -1,6 +1,6 @@
 let backlogComponent = (function () {
   return {
-    renderBacklog(target, keyWord) {
+    renderBacklog(target, keyWord, optionsObject) {
       let component = this;
       let backlogdiv = document.querySelector("#backlog");
       if (backlogdiv) {
@@ -27,7 +27,11 @@ let backlogComponent = (function () {
         if (event.key === "Enter") {
           event.preventDefault();
 
-          component.renderBacklog(OPTIONALCONTAINER, txtbox.value);
+          component.renderBacklog(
+            OPTIONALCONTAINER,
+            txtbox.value,
+            afterMouseOptions
+          );
           txtbox = document.querySelector("#search");
           txtbox.focus();
           txtbox.selectionStart = txtbox.value.length;
@@ -50,11 +54,11 @@ let backlogComponent = (function () {
           );
 
           backlogdiv.appendChild(taskdiv);
-          component.applyDragAndDrop(taskdiv);
+          component.applyDragAndDrop(taskdiv, optionsObject);
         }
       }
     },
-    applyDragAndDrop(elem) {
+    applyDragAndDrop(elem, optionsObject) {
       elem.onmousedown = function (event) {
         elemClone = elem.cloneNode(true);
         document.body.append(elemClone);
@@ -95,12 +99,12 @@ let backlogComponent = (function () {
             let userIndex = target.getAttribute("userid");
             let date = target.getAttribute("date");
 
-            afterMouseUpOnTask(taskIndex, userIndex, date);
+            optionsObject.onTask(taskIndex, userIndex, date);
           } else if (target.className == "droppable-user") {
             let userIndex = target.getAttribute("userid");
             let taskIndex = elem.getAttribute("i");
 
-            afterMouseUpOnUser(taskIndex, userIndex);
+            optionsObject.onUser(taskIndex, userIndex);
           }
           elemClone.remove();
 

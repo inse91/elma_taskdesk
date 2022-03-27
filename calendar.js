@@ -66,7 +66,6 @@ let calendarComponent = (function () {
       }
       return day + "." + month;
     },
-
     renderTasksforUser(currentDate, userID, target) {
       let component = this;
       let tasks = USERMAP[userID];

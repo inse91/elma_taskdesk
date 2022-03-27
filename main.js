@@ -34,6 +34,7 @@ function getDataFromURL(url) {
     return null;
   }
 }
+
 function getDateForAttr(date) {
   let day = date.getDate();
   let month = date.getMonth() + 1;
@@ -60,22 +61,27 @@ function afterMouseUpOnTask(taskIndex, userIndex, date) {
 
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "");
+  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
 
   calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
 }
 function afterMouseUpOnUser(taskIndex, userIndex) {
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "");
+  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
 
   calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
 }
+
+let afterMouseOptions = {
+  onTask: afterMouseUpOnTask,
+  onUser: afterMouseUpOnUser,
+};
 
 window.onload = function () {
   MAINCONTAINER = document.querySelector("#main");
   OPTIONALCONTAINER = document.querySelector("#optional");
 
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "");
+  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
   calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
 };
