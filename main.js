@@ -17,11 +17,6 @@ for (let task of TASKS) {
   task.executor ? USERMAP[task.executor].push(task) : BACKLOG.push(task);
 }
 
-let MAINCONTAINER;
-let OPTIONALCONTAINER;
-
-let weekCounter = 0;
-
 function getDataFromURL(url) {
   let httpRequest = new XMLHttpRequest();
   httpRequest.open("GET", url, false);
@@ -34,54 +29,54 @@ function getDataFromURL(url) {
     return null;
   }
 }
-
-function getDateForAttr(date) {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
-  if (day < 10) {
-    day = "0" + day;
-  }
-  if (month < 10) {
-    month = "0" + month;
-  }
-  return year + "-" + month + "-" + day;
-}
 function parseDate(date) {
   let millisecs = Date.parse(date);
   let outputDate = new Date(millisecs);
   return outputDate;
 }
 
-function afterMouseUpOnTask(taskIndex, userIndex, date) {
-  BACKLOG[taskIndex].planStartDate = date;
-  let fixDate = parseDate(date);
-  fixDate.setDate(fixDate.getDate() + BACKLOG[taskIndex].dayGap);
-  BACKLOG[taskIndex].planEndDate = getDateForAttr(fixDate);
+function afterMouseUpOnCell(taskIndex, userIndex, date) {
+  function getDateForAttr(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    if (day < 10) {
+      day = "0" + day;
+    }
+    if (month < 10) {
+      month = "0" + month;
+    }
+    return year + "-" + month + "-" + day;
+  }
 
+  if (date) {
+    BACKLOG[taskIndex].planStartDate = date;
+    let fixDate = parseDate(date);
+    fixDate.setDate(fixDate.getDate() + BACKLOG[taskIndex].dayGap);
+    BACKLOG[taskIndex].planEndDate = getDateForAttr(fixDate);
+  }
   USERMAP[userIndex].push(BACKLOG[taskIndex]);
   BACKLOG.splice(taskIndex, 1);
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
+  backlogComponent.renderBacklog(backlogOptions);
 
-  calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
-}
-function afterMouseUpOnUser(taskIndex, userIndex) {
-  USERMAP[userIndex].push(BACKLOG[taskIndex]);
-  BACKLOG.splice(taskIndex, 1);
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
-
-  calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
+  calendarComponent.createCalendar(calendarOptions);
 }
 
-let afterMouseOptions = {
-  onTask: afterMouseUpOnTask,
-  onUser: afterMouseUpOnUser,
+let calendarOptions = {
+  weekCounter: 0,
+  container: null,
+};
+
+let backlogOptions = {
+  afterMouseUp: afterMouseUpOnCell,
+  searchKeyWord: "",
+  container: null,
 };
 
 window.onload = function () {
-  MAINCONTAINER = document.querySelector("#main");
-  OPTIONALCONTAINER = document.querySelector("#optional");
+  calendarOptions.container = document.querySelector("#main");
+  calendarComponent.createCalendar(calendarOptions);
 
-  backlogComponent.renderBacklog(OPTIONALCONTAINER, "", afterMouseOptions);
-  calendarComponent.createCalendar(weekCounter, MAINCONTAINER);
+  backlogOptions.container = document.querySelector("#optional");
+  backlogComponent.renderBacklog(backlogOptions);
 };
