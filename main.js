@@ -7,6 +7,7 @@ const TASKS = getDataFromURL(TASKSURL);
 const BACKLOG = [];
 const USERMAP = new Map();
 const CALENDARSIZE = 8; //число столбцов
+const TASK_COLORS = ["green", "blue", "orange", "brown", "purple"];
 
 for (let user of USERS) {
   USERMAP[user.id] = [];

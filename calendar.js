@@ -100,7 +100,7 @@ let calendarComponent = (function () {
 
       let leftButton = document.createElement("div");
       buttondiv.appendChild(leftButton);
-      leftButton.innerHTML = "LEFT";
+      leftButton.innerHTML = "<<";
       leftButton.id = "left";
       leftButton.className = "button";
       leftButton.addEventListener("click", function () {
@@ -110,7 +110,7 @@ let calendarComponent = (function () {
 
       let rightButton = document.createElement("div");
       buttondiv.appendChild(rightButton);
-      rightButton.innerHTML = "RIGHT";
+      rightButton.innerHTML = ">>";
       rightButton.className = "button";
       rightButton.id = "right";
       rightButton.addEventListener("click", function () {
