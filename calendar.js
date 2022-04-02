@@ -1,39 +1,54 @@
-let calendarComponent = (function () {
+let calendarComponent = function () {
   return {
     calendarOptions: {
-      weekCounter: 0,
-      container: document.querySelector("#main"),
-      size: 8,
+      divID: undefined,
+      weekCounter: undefined,
+      container: undefined,
+      size: undefined,
+      usersArray: undefined,
+      tasksArray: undefined,
+      backlogLink: undefined,
     },
-    userMap: null,
-    fillUserMap(users, tasks) {
+    userMap: undefined,
+
+    fillUserMap() {
       let component = this;
-      this.userMap = new Map();
+      component.userMap = new Map();
+
+      let users = component.calendarOptions.usersArray;
       for (let u of users) {
         component.userMap[u.id] = [];
       }
+
+      let tasks = component.calendarOptions.tasksArray;
       for (let t of tasks) {
         t.dayGap =
           (component.parseDate(t.planEndDate) -
             component.parseDate(t.planStartDate)) /
           86400000;
-        t.executor ? component.userMap[t.executor].push(t) : BACKLOG.push(t);
+        t.executor
+          ? component.userMap[t.executor].push(t)
+          : component.calendarOptions.backlogLink.backlogTasks.push(t);
       }
     },
-    createCalendar(calendarOptions) {
+    createCalendar() {
       let component = this;
-      let target = document.querySelector("#main");
+      let target = component.calendarOptions.container;
       let weekCounter = component.calendarOptions.weekCounter;
-      component.createControlPannel(target);
 
-      let calendar = document.querySelector("#calendar");
+      let calendar = document.querySelector(
+        "#" + component.calendarOptions.divID
+      );
       if (calendar) {
         calendar.remove();
       }
 
       let calendardiv = document.createElement("div");
-      calendardiv.id = "calendar";
+      calendardiv.id = component.calendarOptions.divID;
+      calendardiv.className = "calendar";
       target.appendChild(calendardiv);
+
+      component.createControlPannel(calendardiv);
 
       let headerdiv = document.createElement("div");
       headerdiv.id = "header";
@@ -76,17 +91,6 @@ let calendarComponent = (function () {
         }
       }
     },
-    getHeaderDate(date) {
-      let day = date.getDate();
-      let month = date.getMonth() + 1;
-      if (day < 10) {
-        day = "0" + day;
-      }
-      if (month < 10) {
-        month = "0" + month;
-      }
-      return day + "." + month;
-    },
     renderTasksforUser(currentDate, userID, target) {
       let component = this;
       let tasks = component.userMap[userID];
@@ -109,13 +113,16 @@ let calendarComponent = (function () {
     createControlPannel(target) {
       let component = this;
 
-      let buttons = document.querySelector("#buttons");
+      let buttons = document.querySelector(
+        "#buttonsfor" + component.calendarOptions.divID
+      );
       if (buttons) {
         buttons.remove();
       }
 
       let buttondiv = document.createElement("div");
-      buttondiv.id = "buttons";
+      buttondiv.id = "buttonsfor" + component.calendarOptions.divID;
+      buttondiv.className = "buttons";
       target.appendChild(buttondiv);
 
       let leftButton = document.createElement("div");
@@ -125,7 +132,7 @@ let calendarComponent = (function () {
       leftButton.className = "button";
       leftButton.addEventListener("click", function () {
         component.calendarOptions.weekCounter--;
-        component.createCalendar(component.calendarOptions);
+        component.createCalendar();
       });
 
       let rightButton = document.createElement("div");
@@ -135,8 +142,34 @@ let calendarComponent = (function () {
       rightButton.id = "right";
       rightButton.addEventListener("click", function () {
         component.calendarOptions.weekCounter++;
-        component.createCalendar(component.calendarOptions);
+        component.createCalendar();
       });
+    },
+
+    afterMouseUpOnCell(task, target) {
+      let component = this;
+      let date = target.getAttribute("date");
+      if (date) {
+        task.planStartDate = date;
+        let fixDate = component.parseDate(date);
+        fixDate.setDate(fixDate.getDate() + task.dayGap);
+        task.planEndDate = component.getDateForAttr(fixDate);
+      }
+      component.userMap[target.getAttribute("userid")].push(task);
+
+      component.createCalendar();
+    },
+
+    getHeaderDate(date) {
+      let day = date.getDate();
+      let month = date.getMonth() + 1;
+      if (day < 10) {
+        day = "0" + day;
+      }
+      if (month < 10) {
+        month = "0" + month;
+      }
+      return day + "." + month;
     },
     getDateForAttr(date) {
       let day = date.getDate();
@@ -156,4 +189,4 @@ let calendarComponent = (function () {
       return outputDate;
     },
   };
-})();
+};

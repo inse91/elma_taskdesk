@@ -1,9 +1,17 @@
-let backlogComponent = (function () {
+let backlogComponent = function () {
   return {
-    renderBacklog(optionsObject) {
+    backlogOptions: {
+      searchKeyWord: undefined,
+      container: undefined,
+      afterMouseUpFunc: undefined,
+      calendarLink: undefined,
+    },
+    backlogTasks: [],
+
+    renderBacklog() {
       let component = this;
-      let target = optionsObject.container;
-      let keyWord = optionsObject.searchKeyWord;
+      let target = component.backlogOptions.container;
+
       let backlogdiv = document.querySelector("#backlog");
       if (backlogdiv) {
         backlogdiv.remove();
@@ -22,22 +30,26 @@ let backlogComponent = (function () {
 
       let txtbox = document.createElement("input");
       txtbox.id = "search";
-      txtbox.defaultValue = keyWord;
+      txtbox.defaultValue = component.backlogOptions.searchKeyWord;
       backlogdiv.appendChild(txtbox);
 
       txtbox.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
           event.preventDefault();
-          backlogOptions.searchKeyWord = txtbox.value;
-          component.renderBacklog(backlogOptions);
+          component.backlogOptions.searchKeyWord = txtbox.value;
+          component.renderBacklog();
           txtbox = document.querySelector("#search");
           txtbox.focus();
           txtbox.selectionStart = txtbox.value.length;
         }
       });
 
+      let BACKLOG = component.backlogTasks;
+      let keyWord = component.backlogOptions.searchKeyWord;
+
       for (let i = 0; i < BACKLOG.length; i++) {
         taskName = BACKLOG[i].subject.toLowerCase();
+
         if (taskName.includes(keyWord.toLowerCase())) {
           let taskdiv = document.createElement("div");
           taskdiv.setAttribute("taskid", BACKLOG[i].id);
@@ -52,11 +64,15 @@ let backlogComponent = (function () {
           );
 
           backlogdiv.appendChild(taskdiv);
-          component.applyDragAndDrop(taskdiv, optionsObject.afterMouseUp);
+          component.applyDragAndDrop(
+            taskdiv,
+            component.backlogOptions.afterMouseUpFunc
+          );
         }
       }
     },
     applyDragAndDrop(elem, afterMouseUpFunc) {
+      let component = this;
       elem.onmousedown = function (event) {
         elemClone = elem.cloneNode(true);
         document.body.append(elemClone);
@@ -94,10 +110,15 @@ let backlogComponent = (function () {
 
           if (target.className == "droppable") {
             let taskIndex = elem.getAttribute("i");
-            let userIndex = target.getAttribute("userid");
-            let date = target.getAttribute("date");
+            let task = component.backlogTasks[taskIndex];
 
-            afterMouseUpFunc(taskIndex, userIndex, date);
+            component.backlogOptions.calendarLink.afterMouseUpOnCell(
+              task,
+              target
+            );
+
+            component.backlogTasks.splice(taskIndex, 1);
+            elem.remove();
           }
           elemClone.remove();
 
@@ -112,10 +133,5 @@ let backlogComponent = (function () {
         };
       };
     },
-    parseDate(date) {
-      let millisecs = Date.parse(date);
-      let outputDate = new Date(millisecs);
-      return outputDate;
-    },
   };
-})();
+};

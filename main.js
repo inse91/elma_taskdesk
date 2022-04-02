@@ -17,68 +17,28 @@ function getDataFromURL(url) {
   }
 }
 
-//const USERMAP = new Map();
-//const CALENDARSIZE = 8; //число столбцов
+let cal1 = calendarComponent();
+let backlog1 = backlogComponent();
 
-// for (let user of USERS) {
-//   USERMAP[user.id] = [];
-// }
-// for (let task of TASKS) {
-//   task.dayGap =
-//     (parseDate(task.planEndDate) - parseDate(task.planStartDate)) / 86400000;
-//   task.executor ? USERMAP[task.executor].push(task) : BACKLOG.push(task);
-// }
+cal1.calendarOptions = {
+  divID: "calendar1",
+  weekCounter: 0,
+  container: document.querySelector("#main"),
+  size: 8,
+  usersArray: USERS,
+  tasksArray: TASKS,
+  backlogLink: backlog1,
+};
 
-function parseDate(date) {
-  let millisecs = Date.parse(date);
-  let outputDate = new Date(millisecs);
-  return outputDate;
-}
-
-function afterMouseUpOnCell(taskIndex, userIndex, date) {
-  function getDateForAttr(date) {
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-    if (day < 10) {
-      day = "0" + day;
-    }
-    if (month < 10) {
-      month = "0" + month;
-    }
-    return year + "-" + month + "-" + day;
-  }
-
-  if (date) {
-    BACKLOG[taskIndex].planStartDate = date;
-    let fixDate = parseDate(date);
-    fixDate.setDate(fixDate.getDate() + BACKLOG[taskIndex].dayGap);
-    BACKLOG[taskIndex].planEndDate = getDateForAttr(fixDate);
-  }
-  USERMAP[userIndex].push(BACKLOG[taskIndex]);
-  BACKLOG.splice(taskIndex, 1);
-  backlogComponent.renderBacklog(backlogOptions);
-
-  calendarComponent.createCalendar(calendarOptions);
-}
-
-const BACKLOG = [];
-let backlogOptions = {
-  afterMouseUp: afterMouseUpOnCell,
+backlog1.backlogOptions = {
   searchKeyWord: "",
-  container: null,
+  container: document.querySelector("#optional"),
+  calendarLink: cal1,
 };
 
-window.onload = function () {
-  //calendarOptions.container = document.querySelector("#main");
+cal1.fillUserMap();
+cal1.createCalendar();
 
-  calendarComponent.fillUserMap(USERS, TASKS);
-  calendarComponent.createCalendar({
-    weekCounter: 0,
-    container: document.querySelector("#main"),
-    size: 8,
-  });
+backlog1.renderBacklog();
 
-  backlogOptions.container = document.querySelector("#optional");
-  backlogComponent.renderBacklog(backlogOptions);
-};
+window.onload = function () {};
