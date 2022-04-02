@@ -112,5 +112,10 @@ let backlogComponent = (function () {
         };
       };
     },
+    parseDate(date) {
+      let millisecs = Date.parse(date);
+      let outputDate = new Date(millisecs);
+      return outputDate;
+    },
   };
 })();

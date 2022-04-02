@@ -1,9 +1,29 @@
 let calendarComponent = (function () {
   return {
-    createCalendar(optionsObject) {
+    calendarOptions: {
+      weekCounter: 0,
+      container: document.querySelector("#main"),
+      size: 8,
+    },
+    userMap: null,
+    fillUserMap(users, tasks) {
       let component = this;
-      let target = optionsObject.container;
-      let weekCounter = optionsObject.weekCounter;
+      this.userMap = new Map();
+      for (let u of users) {
+        component.userMap[u.id] = [];
+      }
+      for (let t of tasks) {
+        t.dayGap =
+          (component.parseDate(t.planEndDate) -
+            component.parseDate(t.planStartDate)) /
+          86400000;
+        t.executor ? component.userMap[t.executor].push(t) : BACKLOG.push(t);
+      }
+    },
+    createCalendar(calendarOptions) {
+      let component = this;
+      let target = document.querySelector("#main");
+      let weekCounter = component.calendarOptions.weekCounter;
       component.createControlPannel(target);
 
       let calendar = document.querySelector("#calendar");
@@ -22,7 +42,7 @@ let calendarComponent = (function () {
 
       let dateArray = [""];
 
-      for (let i = 0; i < CALENDARSIZE; i++) {
+      for (let i = 0; i < component.calendarOptions.size; i++) {
         let newdiv = document.createElement("div");
         newdiv.className = "header-date";
         let today = new Date();
@@ -42,7 +62,7 @@ let calendarComponent = (function () {
         rowdiv.className = "row";
         calendardiv.appendChild(rowdiv);
 
-        for (let j = 0; j < CALENDARSIZE; j++) {
+        for (let j = 0; j < component.calendarOptions.size; j++) {
           let div = document.createElement("div");
           div.setAttribute("userid", +i + 1);
           div.className = "droppable";
@@ -69,7 +89,7 @@ let calendarComponent = (function () {
     },
     renderTasksforUser(currentDate, userID, target) {
       let component = this;
-      let tasks = USERMAP[userID];
+      let tasks = component.userMap[userID];
       let dateInString = component.getDateForAttr(currentDate);
       if (tasks.length !== 0) {
         for (let task of tasks) {
@@ -104,8 +124,8 @@ let calendarComponent = (function () {
       leftButton.id = "left";
       leftButton.className = "button";
       leftButton.addEventListener("click", function () {
-        calendarOptions.weekCounter--;
-        component.createCalendar(calendarOptions);
+        component.calendarOptions.weekCounter--;
+        component.createCalendar(component.calendarOptions);
       });
 
       let rightButton = document.createElement("div");
@@ -114,8 +134,8 @@ let calendarComponent = (function () {
       rightButton.className = "button";
       rightButton.id = "right";
       rightButton.addEventListener("click", function () {
-        calendarOptions.weekCounter++;
-        component.createCalendar(calendarOptions);
+        component.calendarOptions.weekCounter++;
+        component.createCalendar(component.calendarOptions);
       });
     },
     getDateForAttr(date) {
@@ -129,6 +149,11 @@ let calendarComponent = (function () {
         month = "0" + month;
       }
       return year + "-" + month + "-" + day;
+    },
+    parseDate(date) {
+      let millisecs = Date.parse(date);
+      let outputDate = new Date(millisecs);
+      return outputDate;
     },
   };
 })();

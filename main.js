@@ -4,20 +4,6 @@ const TASKSURL =
   "https://varankin_dev.elma365.ru/api/extensions/2a38760e-083a-4dd0-aebc-78b570bfd3c7/script/tasks";
 const USERS = getDataFromURL(USERSURL);
 const TASKS = getDataFromURL(TASKSURL);
-const BACKLOG = [];
-const USERMAP = new Map();
-const CALENDARSIZE = 8; //число столбцов
-const TASK_COLORS = ["green", "blue", "orange", "brown", "purple"];
-
-for (let user of USERS) {
-  USERMAP[user.id] = [];
-}
-for (let task of TASKS) {
-  task.dayGap =
-    (parseDate(task.planEndDate) - parseDate(task.planStartDate)) / 86400000;
-  task.executor ? USERMAP[task.executor].push(task) : BACKLOG.push(task);
-}
-
 function getDataFromURL(url) {
   let httpRequest = new XMLHttpRequest();
   httpRequest.open("GET", url, false);
@@ -30,6 +16,19 @@ function getDataFromURL(url) {
     return null;
   }
 }
+
+//const USERMAP = new Map();
+//const CALENDARSIZE = 8; //число столбцов
+
+// for (let user of USERS) {
+//   USERMAP[user.id] = [];
+// }
+// for (let task of TASKS) {
+//   task.dayGap =
+//     (parseDate(task.planEndDate) - parseDate(task.planStartDate)) / 86400000;
+//   task.executor ? USERMAP[task.executor].push(task) : BACKLOG.push(task);
+// }
+
 function parseDate(date) {
   let millisecs = Date.parse(date);
   let outputDate = new Date(millisecs);
@@ -63,11 +62,7 @@ function afterMouseUpOnCell(taskIndex, userIndex, date) {
   calendarComponent.createCalendar(calendarOptions);
 }
 
-let calendarOptions = {
-  weekCounter: 0,
-  container: null,
-};
-
+const BACKLOG = [];
 let backlogOptions = {
   afterMouseUp: afterMouseUpOnCell,
   searchKeyWord: "",
@@ -75,8 +70,14 @@ let backlogOptions = {
 };
 
 window.onload = function () {
-  calendarOptions.container = document.querySelector("#main");
-  calendarComponent.createCalendar(calendarOptions);
+  //calendarOptions.container = document.querySelector("#main");
+
+  calendarComponent.fillUserMap(USERS, TASKS);
+  calendarComponent.createCalendar({
+    weekCounter: 0,
+    container: document.querySelector("#main"),
+    size: 8,
+  });
 
   backlogOptions.container = document.querySelector("#optional");
   backlogComponent.renderBacklog(backlogOptions);
