@@ -1,6 +1,8 @@
 let backlogComponent = function () {
   return {
     backlogOptions: {
+      divID: undefined,
+      tasksArray: undefined,
       searchKeyWord: undefined,
       container: undefined,
       afterMouseUpFunc: undefined,
@@ -10,26 +12,38 @@ let backlogComponent = function () {
 
     renderBacklog() {
       let component = this;
-      let target = component.backlogOptions.container;
 
-      let backlogdiv = document.querySelector("#backlog");
-      if (backlogdiv) {
-        backlogdiv.remove();
+      if (this.backlogTasks == 0) {
+        let tasks = component.backlogOptions.tasksArray;
+        for (let t of tasks) {
+          if (!t.executor) {
+            component.backlogTasks.push(t);
+          }
+        }
       }
 
-      backlogdiv = document.createElement("div");
-      backlogdiv.id = "backlog";
-      target.appendChild(backlogdiv);
+      let target = component.backlogOptions.container;
+
+      let backlogdiv = document.querySelector(
+        "#" + component.backlogOptions.divID
+      );
+      if (!backlogdiv) {
+        backlogdiv = document.createElement("div");
+        backlogdiv.id = component.backlogOptions.divID;
+        backlogdiv.className = "backlog";
+        target.appendChild(backlogdiv);
+      }
 
       backlogdiv.innerHTML = "";
 
       let title = document.createElement("div");
-      title.innerHTML = "BACKLOG";
+      title.innerHTML = component.backlogOptions.divID.toUpperCase();
       title.id = "backlogheader";
       backlogdiv.appendChild(title);
 
       let txtbox = document.createElement("input");
-      txtbox.id = "search";
+      txtbox.id = "search" + component.backlogOptions.divID;
+      txtbox.className = "search";
       txtbox.defaultValue = component.backlogOptions.searchKeyWord;
       backlogdiv.appendChild(txtbox);
 
@@ -38,7 +52,9 @@ let backlogComponent = function () {
           event.preventDefault();
           component.backlogOptions.searchKeyWord = txtbox.value;
           component.renderBacklog();
-          txtbox = document.querySelector("#search");
+          txtbox = document.querySelector(
+            "#search" + component.backlogOptions.divID
+          );
           txtbox.focus();
           txtbox.selectionStart = txtbox.value.length;
         }
@@ -71,7 +87,7 @@ let backlogComponent = function () {
         }
       }
     },
-    applyDragAndDrop(elem, afterMouseUpFunc) {
+    applyDragAndDrop(elem) {
       let component = this;
       elem.onmousedown = function (event) {
         elemClone = elem.cloneNode(true);
@@ -118,7 +134,9 @@ let backlogComponent = function () {
             );
 
             component.backlogTasks.splice(taskIndex, 1);
-            elem.remove();
+            component.renderBacklog();
+
+            //elem.remove();
           }
           elemClone.remove();
 

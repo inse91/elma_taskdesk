@@ -17,28 +17,63 @@ function getDataFromURL(url) {
   }
 }
 
-let cal1 = calendarComponent();
-let backlog1 = backlogComponent();
+window.onload = function () {
+  const cal1 = calendarComponent();
+  const backlog1 = backlogComponent();
 
-cal1.calendarOptions = {
-  divID: "calendar1",
-  weekCounter: 0,
-  container: document.querySelector("#main"),
-  size: 8,
-  usersArray: USERS,
-  tasksArray: TASKS,
-  backlogLink: backlog1,
+  const cal2 = calendarComponent();
+  const backlog2 = backlogComponent();
+
+  cal1.calendarOptions = {
+    divID: "calendar1",
+    weekCounter: 0,
+    container: document.querySelector("#main"),
+    size: 8,
+    usersArray: USERS,
+    tasksArray: TASKS,
+  };
+  cal2.calendarOptions = {
+    divID: "calendar2",
+    weekCounter: 0,
+    container: document.querySelector("#main"),
+    size: 8,
+    usersArray: USERS,
+    tasksArray: TASKS,
+  };
+
+  backlog1.backlogOptions = {
+    divID: "backlog1",
+    tasksArray: TASKS,
+    searchKeyWord: "",
+    container: document.querySelector("#optional"),
+    calendarLink: cal1,
+  };
+  backlog2.backlogOptions = {
+    divID: "backlog2",
+    tasksArray: TASKS,
+    searchKeyWord: "",
+    container: document.querySelector("#optional"),
+    calendarLink: cal2,
+  };
+
+  cal1.fillUserMap();
+  cal1.createCalendar();
+
+  cal2.fillUserMap();
+  cal2.createCalendar();
+
+  backlog1.renderBacklog();
+  backlog2.renderBacklog();
 };
 
-backlog1.backlogOptions = {
-  searchKeyWord: "",
-  container: document.querySelector("#optional"),
-  calendarLink: cal1,
-};
+/*
 
-cal1.fillUserMap();
-cal1.createCalendar();
+Let calendar = new Calendar()
 
-backlog1.renderBacklog();
+Ссылка на бэклог в календаре
+Ну и так же в бэклоге осталась логика по использованию календаря
 
-window.onload = function () {};
+И после всего этого,  создаем 4 контейнера в html, 2 на календарь, 
+2 на бэклог и они все должны появиться на странице и работать
+
+*/
