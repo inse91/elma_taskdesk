@@ -1,14 +1,20 @@
-let calendarComponent = function () {
+let calendarComponent = function (options) {
   return {
     calendarOptions: {
-      divID: undefined,
-      weekCounter: undefined,
-      container: undefined,
-      size: undefined,
-      usersArray: undefined,
-      tasksArray: undefined,
+      divID: options.divID,
+      weekCounter: 0,
+      container: options.container,
+      size: 8,
+      usersArray: options.usersArray,
+      tasksArray: options.tasksArray,
     },
-    userMap: undefined,
+    userMap: null,
+
+    render() {
+      this.fillUserMap();
+      this.createCalendar();
+      this.addDropTaskListener();
+    },
 
     fillUserMap() {
       let component = this;
@@ -30,8 +36,23 @@ let calendarComponent = function () {
         }
       }
     },
+    addDropTaskListener() {
+      let component = this;
+
+      document.addEventListener("dropTask", function (event) {
+        console.log(event.detail);
+        let task = event.detail.task;
+        let target = event.detail.target;
+
+        if (target.className == "calendar-task") {
+          target = target.parentElement;
+        }
+        component.dropTask(task, target);
+      });
+    },
     createCalendar() {
       let component = this;
+
       let target = component.calendarOptions.container;
       let weekCounter = component.calendarOptions.weekCounter;
 
@@ -42,7 +63,7 @@ let calendarComponent = function () {
         calendardiv = document.createElement("div");
         calendardiv.id = component.calendarOptions.divID;
         calendardiv.className = "calendar";
-        target.appendChild(calendardiv);
+        target.append(calendardiv);
       }
 
       calendardiv.innerHTML = "";
@@ -52,7 +73,7 @@ let calendarComponent = function () {
       let headerdiv = document.createElement("div");
       headerdiv.id = "header";
       headerdiv.className = "toprow";
-      calendardiv.appendChild(headerdiv);
+      calendardiv.append(headerdiv);
 
       let dateArray = [""];
 
@@ -68,25 +89,28 @@ let calendarComponent = function () {
         } else {
           newdiv.style.transform = "scale(0)";
         }
-        headerdiv.appendChild(newdiv);
+        headerdiv.append(newdiv);
       }
 
       for (let i = 0; i < USERS.length; i++) {
         let rowdiv = document.createElement("div");
         rowdiv.className = "row";
-        calendardiv.appendChild(rowdiv);
+        calendardiv.append(rowdiv);
 
         for (let j = 0; j < component.calendarOptions.size; j++) {
           let div = document.createElement("div");
-          div.setAttribute("userid", +i + 1);
+          div.setAttribute("data-user-id", +i + 1);
           div.className = "droppable";
           if (j !== 0) {
-            div.setAttribute("date", component.getDateForAttr(dateArray[j]));
+            div.setAttribute(
+              "data-date",
+              component.getDateForAttr(dateArray[j])
+            );
             component.renderTasksforUser(dateArray[j], USERS[i].id, div);
           } else {
             div.innerHTML = USERS[i].firstName;
           }
-          rowdiv.appendChild(div);
+          rowdiv.append(div);
         }
       }
     },
@@ -104,7 +128,7 @@ let calendarComponent = function () {
             newTask.innerHTML = task.subject;
             newTask.className = "calendar-task";
             newTask.title = task.planStartDate + " - " + task.planEndDate;
-            target.appendChild(newTask);
+            target.append(newTask);
           }
         }
       }
@@ -115,10 +139,9 @@ let calendarComponent = function () {
       let buttondiv = document.createElement("div");
       buttondiv.id = "buttonsfor" + component.calendarOptions.divID;
       buttondiv.className = "buttons";
-      target.appendChild(buttondiv);
+      target.prepend(buttondiv);
 
       let leftButton = document.createElement("div");
-      buttondiv.appendChild(leftButton);
       leftButton.innerHTML = "<<";
       leftButton.id = "left";
       leftButton.className = "button";
@@ -128,7 +151,6 @@ let calendarComponent = function () {
       });
 
       let rightButton = document.createElement("div");
-      buttondiv.appendChild(rightButton);
       rightButton.innerHTML = ">>";
       rightButton.className = "button";
       rightButton.id = "right";
@@ -136,27 +158,22 @@ let calendarComponent = function () {
         component.calendarOptions.weekCounter++;
         component.createCalendar();
       });
+
+      buttondiv.append(leftButton, rightButton);
     },
 
-    afterMouseUpOnCell(task, target) {
+    dropTask(task, target) {
       let component = this;
-      let date = target.getAttribute("date");
+      let date = target.dataset.date;
       if (date) {
         task.planStartDate = date;
         let fixDate = component.parseDate(date);
         fixDate.setDate(fixDate.getDate() + task.dayGap);
         task.planEndDate = component.getDateForAttr(fixDate);
       }
-      component.userMap[target.getAttribute("userid")].push(task);
+      component.userMap[target.dataset.userId].push(task);
 
       component.createCalendar();
-
-      let par = target.parentElement;
-
-      do {
-        par = par.parentElement;
-      } while (par.id.includes("calendar"));
-      console.log(par);
     },
 
     getHeaderDate(date) {

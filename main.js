@@ -18,62 +18,35 @@ function getDataFromURL(url) {
 }
 
 window.onload = function () {
-  const cal1 = calendarComponent();
-  const backlog1 = backlogComponent();
-
-  const cal2 = calendarComponent();
-  const backlog2 = backlogComponent();
-
-  cal1.calendarOptions = {
+  let cal1 = calendarComponent({
     divID: "calendar1",
-    weekCounter: 0,
     container: document.querySelector("#main"),
-    size: 8,
     usersArray: USERS,
     tasksArray: TASKS,
-  };
-  cal2.calendarOptions = {
+  });
+  let cal2 = calendarComponent({
     divID: "calendar2",
-    weekCounter: 0,
     container: document.querySelector("#main"),
-    size: 8,
     usersArray: USERS,
     tasksArray: TASKS,
-  };
+  });
 
-  backlog1.backlogOptions = {
+  let backlog1 = backlogComponent({
     divID: "backlog1",
     tasksArray: TASKS,
-    searchKeyWord: "",
     container: document.querySelector("#optional"),
     calendarLink: cal1,
-  };
-  backlog2.backlogOptions = {
+  });
+  let backlog2 = backlogComponent({
     divID: "backlog2",
     tasksArray: TASKS,
-    searchKeyWord: "",
     container: document.querySelector("#optional"),
-    calendarLink: cal2,
-  };
+    calendarLink: cal1,
+  });
 
-  cal1.fillUserMap();
-  cal1.createCalendar();
+  cal1.render();
+  cal2.render();
 
-  cal2.fillUserMap();
-  cal2.createCalendar();
-
-  backlog1.renderBacklog();
-  backlog2.renderBacklog();
+  backlog1.render();
+  backlog2.render();
 };
-
-/*
-
-Let calendar = new Calendar()
-
-Ссылка на бэклог в календаре
-Ну и так же в бэклоге осталась логика по использованию календаря
-
-И после всего этого,  создаем 4 контейнера в html, 2 на календарь, 
-2 на бэклог и они все должны появиться на странице и работать
-
-*/
