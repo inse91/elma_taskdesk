@@ -18,30 +18,28 @@ function getDataFromURL(url) {
 }
 
 window.onload = function () {
-  let cal1 = calendarComponent({
+  const cal1 = calendarComponent({
     divID: "calendar1",
     container: document.querySelector("#main"),
     usersArray: USERS,
     tasksArray: TASKS,
   });
-  let cal2 = calendarComponent({
+  const cal2 = calendarComponent({
     divID: "calendar2",
     container: document.querySelector("#main"),
     usersArray: USERS,
     tasksArray: TASKS,
   });
 
-  let backlog1 = backlogComponent({
+  const backlog1 = backlogComponent({
     divID: "backlog1",
     tasksArray: TASKS,
     container: document.querySelector("#optional"),
-    calendarLink: cal1,
   });
-  let backlog2 = backlogComponent({
+  const backlog2 = backlogComponent({
     divID: "backlog2",
     tasksArray: TASKS,
     container: document.querySelector("#optional"),
-    calendarLink: cal1,
   });
 
   cal1.render();

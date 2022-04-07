@@ -16,40 +16,6 @@ let calendarComponent = function (options) {
       this.addDropTaskListener();
     },
 
-    fillUserMap() {
-      let component = this;
-      component.userMap = new Map();
-
-      let users = component.calendarOptions.usersArray;
-      for (let u of users) {
-        component.userMap[u.id] = [];
-      }
-
-      let tasks = component.calendarOptions.tasksArray;
-      for (let t of tasks) {
-        t.dayGap =
-          (component.parseDate(t.planEndDate) -
-            component.parseDate(t.planStartDate)) /
-          86400000;
-        if (t.executor) {
-          component.userMap[t.executor].push(t);
-        }
-      }
-    },
-    addDropTaskListener() {
-      let component = this;
-
-      document.addEventListener("dropTask", function (event) {
-        console.log(event.detail);
-        let task = event.detail.task;
-        let target = event.detail.target;
-
-        if (target.className == "calendar-task") {
-          target = target.parentElement;
-        }
-        component.dropTask(task, target);
-      });
-    },
     createCalendar() {
       let component = this;
 
@@ -114,6 +80,67 @@ let calendarComponent = function (options) {
         }
       }
     },
+    addDropTaskListener() {
+      let component = this;
+      let calendar = document.querySelector(
+        "#" + component.calendarOptions.divID
+      );
+
+      calendar.addEventListener("dropTask", (event) => {
+        let task = event.detail.task;
+        let target = event.detail.target;
+        let taskIndex = event.detail.taskIndex;
+        let id = event.detail.backlogId;
+
+        if (target.className === "calendar-task") {
+          target = target.parentElement;
+        }
+
+        if (target.className === "droppable") {
+          let date = target.dataset.date;
+          if (date) {
+            task.planStartDate = date;
+            let fixDate = component.parseDate(date);
+            fixDate.setDate(fixDate.getDate() + task.dayGap);
+            task.planEndDate = component.getDateForAttr(fixDate);
+          }
+          component.userMap[target.dataset.userId].push(task);
+
+          component.createCalendar();
+
+          let responseEventName = event.detail.backlogId;
+
+          let responseEvent = new CustomEvent(responseEventName, {
+            bubbles: true,
+            detail: {
+              taskIndex: event.detail.taskIndex,
+            },
+          });
+          document.body.dispatchEvent(responseEvent);
+        }
+      });
+    },
+
+    fillUserMap() {
+      let component = this;
+      component.userMap = new Map();
+
+      let users = component.calendarOptions.usersArray;
+      for (let u of users) {
+        component.userMap[u.id] = [];
+      }
+
+      let tasks = component.calendarOptions.tasksArray;
+      for (let t of tasks) {
+        t.dayGap =
+          (component.parseDate(t.planEndDate) -
+            component.parseDate(t.planStartDate)) /
+          86400000;
+        if (t.executor) {
+          component.userMap[t.executor].push(t);
+        }
+      }
+    },
     renderTasksforUser(currentDate, userID, target) {
       let component = this;
       let tasks = component.userMap[userID];
@@ -160,20 +187,6 @@ let calendarComponent = function (options) {
       });
 
       buttondiv.append(leftButton, rightButton);
-    },
-
-    dropTask(task, target) {
-      let component = this;
-      let date = target.dataset.date;
-      if (date) {
-        task.planStartDate = date;
-        let fixDate = component.parseDate(date);
-        fixDate.setDate(fixDate.getDate() + task.dayGap);
-        task.planEndDate = component.getDateForAttr(fixDate);
-      }
-      component.userMap[target.dataset.userId].push(task);
-
-      component.createCalendar();
     },
 
     getHeaderDate(date) {

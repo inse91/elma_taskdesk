@@ -5,11 +5,15 @@ let backlogComponent = function (options) {
       tasksArray: options.tasksArray,
       searchKeyWord: "",
       container: options.container,
-      calendarLink: options.calendarLink,
     },
     backlogTasks: [],
 
     render() {
+      this.renderBacklog();
+      this.addResponseListener();
+    },
+
+    renderBacklog() {
       let component = this;
 
       if (component.backlogTasks == 0) {
@@ -46,11 +50,11 @@ let backlogComponent = function (options) {
 
       backlogdiv.prepend(title, txtbox);
 
-      txtbox.addEventListener("keypress", function (event) {
+      txtbox.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
           component.backlogOptions.searchKeyWord = txtbox.value;
-          component.render();
+          component.renderBacklog();
           txtbox = document.querySelector(
             "#search" + component.backlogOptions.divID
           );
@@ -59,22 +63,22 @@ let backlogComponent = function (options) {
         }
       });
 
-      let BACKLOG = component.backlogTasks;
+      let backlog = component.backlogTasks;
       let keyWord = component.backlogOptions.searchKeyWord;
 
-      for (let i = 0; i < BACKLOG.length; i++) {
-        taskName = BACKLOG[i].subject.toLowerCase();
+      for (let i = 0; i < backlog.length; i++) {
+        taskName = backlog[i].subject.toLowerCase();
 
         if (taskName.includes(keyWord.toLowerCase())) {
           let taskdiv = document.createElement("div");
           taskdiv.setAttribute("data-task-number", i);
           taskdiv.id = "task" + (i + 1);
-          taskdiv.innerHTML = BACKLOG[i].subject;
+          taskdiv.innerHTML = backlog[i].subject;
           taskdiv.draggable = true;
           taskdiv.className = "backlog-task";
           taskdiv.setAttribute(
             "hint",
-            BACKLOG[i].planStartDate + " - " + BACKLOG[i].planEndDate
+            backlog[i].planStartDate + " - " + backlog[i].planEndDate
           );
 
           backlogdiv.append(taskdiv);
@@ -84,7 +88,7 @@ let backlogComponent = function (options) {
     },
     applyDragAndDrop(elem) {
       let component = this;
-      elem.onmousedown = function (event) {
+      elem.onmousedown = (event) => {
         elemClone = elem.cloneNode(true);
         document.body.append(elemClone);
 
@@ -103,39 +107,43 @@ let backlogComponent = function (options) {
           moveAt(event.pageX, event.pageY);
         }
 
-        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mousemove", (event) => {
+          moveAt(event.pageX, event.pageY);
+        });
 
-        elemClone.onmouseup = function (event) {
+        elemClone.onmouseup = (event) => {
           elemClone.hidden = true;
 
           let target = document.elementFromPoint(event.clientX, event.clientY);
           let taskIndex = elem.dataset.taskNumber;
-          let task = component.backlogTasks[taskIndex];
 
           const dropTask = new CustomEvent("dropTask", {
+            bubbles: true,
             detail: {
-              task: task,
+              task: component.backlogTasks[taskIndex],
               target: target,
+              taskIndex: taskIndex,
+              backlogId: component.backlogOptions.divID,
             },
           });
-
-          document.dispatchEvent(dropTask);
-
-          component.backlogTasks.splice(taskIndex, 1);
-          component.render();
+          target.dispatchEvent(dropTask);
 
           elemClone.remove();
-
-          elemClone.onmouseup = null;
+          //elemClone.onmouseup = null;
         };
-
-        elemClone.ondragstart = function () {
-          return false;
-        };
-        // elem.ondragstart = function () {
-        //   return false;
-        // };
+        elemClone.ondragstart = () => false;
+        elem.ondragstart = () => false;
       };
+    },
+    addResponseListener() {
+      let component = this;
+      let responseEventName = component.backlogOptions.divID;
+      document.addEventListener(responseEventName, (event) => {
+        let taskIndex = event.detail.taskIndex;
+        component.backlogTasks.splice(taskIndex, 1);
+
+        component.renderBacklog();
+      });
     },
   };
 };
