@@ -87,7 +87,7 @@ const calendarComponent = function (args) {
 
       calendar.addEventListener("dropTask", (event) => {
         const task = event.detail.task;
-        const target = event.detail.target;
+        let target = event.detail.target;
 
         if (target.className === "calendar-task") {
           target = target.parentElement;

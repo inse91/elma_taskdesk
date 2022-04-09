@@ -72,33 +72,32 @@ const backlogComponent = function (args) {
 
     getSearchBox() {
       const component = this;
+      const defaulfValue = "Enter task name";
+
       let searchBox = document.createElement("input");
       searchBox.id = "search" + component.options.divID;
       searchBox.type = "text";
       searchBox.className = "search";
       searchBox.value = component.options.searchKeyWord;
       if (searchBox.value == "") {
-        searchBox.value = "enter task name";
+        searchBox.value = defaulfValue;
       }
 
       searchBox.addEventListener("focusin", () => {
-        if (searchBox.value == "" || searchBox.value == "enter task name") {
+        if (searchBox.value == "" || searchBox.value == defaulfValue) {
           searchBox.value = component.options.searchKeyWord;
         }
       });
       searchBox.addEventListener("focusout", () => {
         if (searchBox.value === "") {
-          searchBox.value = "enter task name";
+          searchBox.value = defaulfValue;
         }
       });
-
       searchBox.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
-
           component.options.searchKeyWord = searchBox.value;
           component.render();
-
           searchBox = document.querySelector(
             "#search" + component.options.divID
           );
