@@ -92,7 +92,7 @@ body {
   margin-bottom: 660px;
 }
 
-#backlogheader {
+.backlogheader {
   background-color: #bdbdbd;
   height: 60px;
   font-size: large;
@@ -104,6 +104,10 @@ body {
 .search {
   width: inherit;
   font-size: 18px;
+}
+
+.search:not(:focus) {
+  color: grey;
 }
 
 .backlog-task {

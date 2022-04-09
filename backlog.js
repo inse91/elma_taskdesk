@@ -1,93 +1,115 @@
-let backlogComponent = function (options) {
+const backlogComponent = function (args) {
   return {
-    backlogOptions: {
-      divID: options.divID, //тут хранить ссылку
-      tasksArray: options.tasksArray,
+    options: {
+      divID: args.divID,
+      tasksArray: args.tasksArray,
       searchKeyWord: "",
-      container: options.container,
+      container: args.container,
     },
-    backlogTasks: [],
+    tasksArr: [],
 
-    render() {
-      this.renderBacklog();
+    create() {
+      this.fillTasksArr();
+      this.render();
       this.addResponseListener();
     },
 
-    renderBacklog() {
-      let component = this;
-
-      if (component.backlogTasks == 0) {
-        let tasks = component.backlogOptions.tasksArray;
-        for (let t of tasks) {
-          if (!t.executor) {
-            component.backlogTasks.push(t);
-          }
+    fillTasksArr() {
+      const component = this;
+      const tasks = component.options.tasksArray;
+      for (let task of tasks) {
+        if (!task.executor) {
+          component.tasksArr.push(task);
         }
       }
+    },
+    render() {
+      const component = this;
+      const target = component.options.container;
 
-      let target = component.backlogOptions.container;
-
-      let backlogdiv = document.querySelector(
-        "#" + component.backlogOptions.divID
-      );
+      let backlogdiv = document.querySelector("#" + component.options.divID);
       if (!backlogdiv) {
         backlogdiv = document.createElement("div");
-        backlogdiv.id = component.backlogOptions.divID;
+        backlogdiv.id = component.options.divID;
         backlogdiv.className = "backlog";
         target.append(backlogdiv);
       }
-
       backlogdiv.innerHTML = "";
 
-      let title = document.createElement("div");
-      title.innerHTML = component.backlogOptions.divID.toUpperCase();
-      title.id = "backlogheader";
+      const title = document.createElement("div");
+      title.innerHTML = "backlog".toUpperCase();
+      title.className = "backlogheader";
+      backlogdiv.prepend(title);
 
-      let txtbox = document.createElement("input");
-      txtbox.id = "search" + component.backlogOptions.divID;
-      txtbox.className = "search";
-      txtbox.defaultValue = component.backlogOptions.searchKeyWord;
+      let searchBox = this.getSearchBox();
+      title.after(searchBox);
 
-      backlogdiv.prepend(title, txtbox);
+      const tasks = component.tasksArr;
+      const keyWord = component.options.searchKeyWord;
+      let taskCounter = 0;
 
-      txtbox.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          component.backlogOptions.searchKeyWord = txtbox.value;
-          component.renderBacklog();
-          txtbox = document.querySelector(
-            "#search" + component.backlogOptions.divID
-          );
-          txtbox.focus();
-          txtbox.selectionStart = txtbox.value.length;
-        }
-      });
-
-      let backlog = component.backlogTasks;
-      let keyWord = component.backlogOptions.searchKeyWord;
-
-      for (let i = 0; i < backlog.length; i++) {
-        taskName = backlog[i].subject.toLowerCase();
+      tasks.forEach((task, index) => {
+        taskName = task.subject.toLowerCase();
 
         if (taskName.includes(keyWord.toLowerCase())) {
-          let taskdiv = document.createElement("div");
-          taskdiv.setAttribute("data-task-number", i);
-          taskdiv.id = "task" + (i + 1);
-          taskdiv.innerHTML = backlog[i].subject;
+          const taskdiv = document.createElement("div");
+          taskdiv.setAttribute("data-task-number", index);
+          taskdiv.innerHTML = task.subject;
           taskdiv.draggable = true;
           taskdiv.className = "backlog-task";
           taskdiv.setAttribute(
             "hint",
-            backlog[i].planStartDate + " - " + backlog[i].planEndDate
+            task.planStartDate + " - " + task.planEndDate
           );
+          taskCounter++;
 
           backlogdiv.append(taskdiv);
           component.applyDragAndDrop(taskdiv);
         }
+      });
+      return taskCounter;
+    },
+
+    getSearchBox() {
+      const component = this;
+      let searchBox = document.createElement("input");
+      searchBox.id = "search" + component.options.divID;
+      searchBox.type = "text";
+      searchBox.className = "search";
+      searchBox.value = component.options.searchKeyWord;
+      if (searchBox.value == "") {
+        searchBox.value = "enter task name";
       }
+
+      searchBox.addEventListener("focusin", () => {
+        if (searchBox.value == "" || searchBox.value == "enter task name") {
+          searchBox.value = component.options.searchKeyWord;
+        }
+      });
+      searchBox.addEventListener("focusout", () => {
+        if (searchBox.value === "") {
+          searchBox.value = "enter task name";
+        }
+      });
+
+      searchBox.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+
+          component.options.searchKeyWord = searchBox.value;
+          component.render();
+
+          searchBox = document.querySelector(
+            "#search" + component.options.divID
+          );
+          searchBox.focus();
+          searchBox.selectionStart = searchBox.value.length;
+        }
+      });
+      return searchBox;
     },
     applyDragAndDrop(elem) {
-      let component = this;
+      const component = this;
       elem.onmousedown = (event) => {
         elemClone = elem.cloneNode(true);
         document.body.append(elemClone);
@@ -96,15 +118,9 @@ let backlogComponent = function (options) {
         elemClone.style.zIndex = 1000;
         elemClone.className = "backlog-task-dragging";
 
-        moveAt(event.pageX, event.pageY);
-
         function moveAt(pageX, pageY) {
           elemClone.style.left = pageX - elemClone.offsetWidth / 2 + "px";
           elemClone.style.top = pageY - elemClone.offsetHeight / 2 + "px";
-        }
-
-        function onMouseMove(event) {
-          moveAt(event.pageX, event.pageY);
         }
 
         document.addEventListener("mousemove", (event) => {
@@ -114,35 +130,42 @@ let backlogComponent = function (options) {
         elemClone.onmouseup = (event) => {
           elemClone.hidden = true;
 
-          let target = document.elementFromPoint(event.clientX, event.clientY);
-          let taskIndex = elem.dataset.taskNumber;
+          const target = document.elementFromPoint(
+            event.clientX,
+            event.clientY
+          );
+          const taskIndex = elem.dataset.taskNumber;
 
           const dropTask = new CustomEvent("dropTask", {
             bubbles: true,
             detail: {
-              task: component.backlogTasks[taskIndex],
+              task: component.tasksArr[taskIndex],
               target: target,
               taskIndex: taskIndex,
-              backlogId: component.backlogOptions.divID,
+              dragStartElem: component.options.divID,
             },
           });
           target.dispatchEvent(dropTask);
 
           elemClone.remove();
-          //elemClone.onmouseup = null;
+          elemClone.onmouseup = null;
         };
         elemClone.ondragstart = () => false;
         elem.ondragstart = () => false;
       };
     },
     addResponseListener() {
-      let component = this;
-      let responseEventName = component.backlogOptions.divID;
+      const component = this;
+      const responseEventName = component.options.divID;
       document.addEventListener(responseEventName, (event) => {
-        let taskIndex = event.detail.taskIndex;
-        component.backlogTasks.splice(taskIndex, 1);
+        const taskIndex = event.detail.taskIndex;
+        component.tasksArr.splice(taskIndex, 1);
 
-        component.renderBacklog();
+        const taskCounter = component.render();
+        if (taskCounter == 0) {
+          component.options.searchKeyWord = "";
+          component.render();
+        }
       });
     },
   };

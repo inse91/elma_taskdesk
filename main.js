@@ -24,27 +24,12 @@ window.onload = function () {
     usersArray: USERS,
     tasksArray: TASKS,
   });
-  const cal2 = calendarComponent({
-    divID: "calendar2",
-    container: document.querySelector("#main"),
-    usersArray: USERS,
-    tasksArray: TASKS,
-  });
-
   const backlog1 = backlogComponent({
     divID: "backlog1",
     tasksArray: TASKS,
     container: document.querySelector("#optional"),
   });
-  const backlog2 = backlogComponent({
-    divID: "backlog2",
-    tasksArray: TASKS,
-    container: document.querySelector("#optional"),
-  });
 
-  cal1.render();
-  cal2.render();
-
-  backlog1.render();
-  backlog2.render();
+  cal1.create();
+  backlog1.create();
 };
