@@ -27,7 +27,7 @@ body {
   }
 }
 
-#buttons {
+.buttons {
   display: grid;
   grid-template-columns: 100px 100px;
   justify-content: center;
@@ -45,7 +45,7 @@ body {
   margin: 0px 10px;
 }
 
-#calendar {
+.calendar {
   box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 3px 1px -2px rgb(0 0 0 / 12%),
     0 1px 5px 0 rgb(0 0 0 / 20%);
 }
@@ -85,13 +85,14 @@ body {
   background-color: #80deea;
 }
 
-#backlog {
+.backlog {
   display: grid;
   box-shadow: 0 2px 2px 0 rgb(0 0 0 / 14%), 0 3px 1px -2px rgb(0 0 0 / 12%),
     0 1px 5px 0 rgb(0 0 0 / 20%);
+  margin-bottom: 660px;
 }
 
-#backlogheader {
+.backlogheader {
   background-color: #bdbdbd;
   height: 60px;
   font-size: large;
@@ -100,9 +101,13 @@ body {
   align-content: center;
 }
 
-#search {
+.search {
   width: inherit;
   font-size: 18px;
+}
+
+.search:not(:focus) {
+  color: grey;
 }
 
 .backlog-task {

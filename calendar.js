@@ -1,31 +1,53 @@
-let calendarComponent = (function () {
+const calendarComponent = function (args) {
   return {
-    createCalendar(optionsObject) {
-      let component = this;
-      let target = optionsObject.container;
-      let weekCounter = optionsObject.weekCounter;
-      component.createControlPannel(target);
+    options: {
+      divID: args.divID,
+      weekCounter: 0,
+      container: args.container,
+      size: 8,
+      usersArray: args.usersArray,
+      tasksArray: args.tasksArray,
+    },
+    userMap: null,
 
-      let calendar = document.querySelector("#calendar");
-      if (calendar) {
-        calendar.remove();
+    create() {
+      this.fillUserMap();
+      this.refresh();
+      this.addDropTaskListener();
+    },
+
+    refresh() {
+      const component = this;
+
+      const target = component.options.container;
+      const weekCounter = component.options.weekCounter;
+
+      let calendardiv = document.querySelector("#" + component.options.divID);
+      if (!calendardiv) {
+        calendardiv = document.createElement("div");
+        calendardiv.id = component.options.divID;
+        calendardiv.className = "calendar";
+        target.append(calendardiv);
       }
 
-      let calendardiv = document.createElement("div");
-      calendardiv.id = "calendar";
-      target.appendChild(calendardiv);
+      calendardiv.innerHTML = "";
 
-      let headerdiv = document.createElement("div");
+      component.createControlPannel(calendardiv);
+
+      const headerdiv = document.createElement("div");
       headerdiv.id = "header";
       headerdiv.className = "toprow";
-      calendardiv.appendChild(headerdiv);
+      calendardiv.append(headerdiv);
 
-      let dateArray = [""];
+      const dateArray = [""];
 
-      for (let i = 0; i < CALENDARSIZE; i++) {
-        let newdiv = document.createElement("div");
+      const users = component.options.usersArray;
+      const size = component.options.size;
+
+      for (let i = 0; i < size; i++) {
+        const newdiv = document.createElement("div");
         newdiv.className = "header-date";
-        let today = new Date();
+        const today = new Date();
         today.setDate(today.getDate() - today.getDay() + i + 7 * weekCounter);
 
         if (i !== 0) {
@@ -34,28 +56,136 @@ let calendarComponent = (function () {
         } else {
           newdiv.style.transform = "scale(0)";
         }
-        headerdiv.appendChild(newdiv);
+        headerdiv.append(newdiv);
       }
 
-      for (let i = 0; i < USERS.length; i++) {
-        let rowdiv = document.createElement("div");
+      for (let user of users) {
+        const rowdiv = document.createElement("div");
         rowdiv.className = "row";
-        calendardiv.appendChild(rowdiv);
+        calendardiv.append(rowdiv);
 
-        for (let j = 0; j < CALENDARSIZE; j++) {
-          let div = document.createElement("div");
-          div.setAttribute("userid", +i + 1);
+        for (let i = 0; i < size; i++) {
+          const div = document.createElement("div");
+          div.setAttribute("data-user-id", user.id);
           div.className = "droppable";
-          if (j !== 0) {
-            div.setAttribute("date", component.getDateForAttr(dateArray[j]));
-            component.renderTasksforUser(dateArray[j], USERS[i].id, div);
+          if (i !== 0) {
+            div.setAttribute(
+              "data-date",
+              component.getDateForAttr(dateArray[i])
+            );
+            component.renderTasksforUser(dateArray[i], user.id, div);
           } else {
-            div.innerHTML = USERS[i].firstName;
+            div.innerHTML = user.firstName;
           }
-          rowdiv.appendChild(div);
+          rowdiv.append(div);
         }
       }
     },
+    addDropTaskListener() {
+      const component = this;
+      const calendar = document.querySelector("#" + component.options.divID);
+
+      calendar.addEventListener("dropTask", (event) => {
+        const task = event.detail.task;
+        let target = event.detail.target;
+
+        if (target.className === "calendar-task") {
+          target = target.parentElement;
+        }
+
+        if (target.className === "droppable") {
+          const date = target.dataset.date;
+          if (date) {
+            task.planStartDate = date;
+            const fixDate = component.parseDate(date);
+            fixDate.setDate(fixDate.getDate() + task.dayGap);
+            task.planEndDate = component.getDateForAttr(fixDate);
+          }
+          component.userMap[target.dataset.userId].push(task);
+
+          component.refresh();
+
+          const responseEventName = event.detail.dragStartElem;
+
+          const responseEvent = new CustomEvent(responseEventName, {
+            bubbles: true,
+            detail: {
+              taskIndex: event.detail.taskIndex,
+            },
+          });
+          document.body.dispatchEvent(responseEvent);
+        }
+      });
+    },
+
+    fillUserMap() {
+      const component = this;
+      component.userMap = new Map();
+
+      const users = component.options.usersArray;
+      for (let user of users) {
+        component.userMap[user.id] = [];
+      }
+
+      const tasks = component.options.tasksArray;
+      for (let task of tasks) {
+        task.dayGap =
+          (component.parseDate(task.planEndDate) -
+            component.parseDate(task.planStartDate)) /
+          86400000;
+        if (task.executor) {
+          component.userMap[task.executor].push(task);
+        }
+      }
+    },
+    renderTasksforUser(currentDate, userID, target) {
+      const component = this;
+      const tasks = component.userMap[userID];
+      const dateInString = component.getDateForAttr(currentDate);
+      if (tasks.length !== 0) {
+        for (let task of tasks) {
+          if (
+            task.planStartDate <= dateInString &&
+            dateInString <= task.planEndDate
+          ) {
+            const newTask = document.createElement("div");
+            newTask.innerHTML = task.subject;
+            newTask.className = "calendar-task";
+            newTask.title = task.planStartDate + " - " + task.planEndDate;
+            target.append(newTask);
+          }
+        }
+      }
+    },
+    createControlPannel(target) {
+      const component = this;
+
+      const buttondiv = document.createElement("div");
+      buttondiv.id = "buttonsfor" + component.options.divID;
+      buttondiv.className = "buttons";
+      target.prepend(buttondiv);
+
+      const leftButton = document.createElement("div");
+      leftButton.innerHTML = "<<";
+      leftButton.id = "left";
+      leftButton.className = "button";
+      leftButton.addEventListener("click", function () {
+        component.options.weekCounter--;
+        component.refresh();
+      });
+
+      const rightButton = document.createElement("div");
+      rightButton.innerHTML = ">>";
+      rightButton.className = "button";
+      rightButton.id = "right";
+      rightButton.addEventListener("click", function () {
+        component.options.weekCounter++;
+        component.refresh();
+      });
+
+      buttondiv.append(leftButton, rightButton);
+    },
+
     getHeaderDate(date) {
       let day = date.getDate();
       let month = date.getMonth() + 1;
@@ -67,61 +197,10 @@ let calendarComponent = (function () {
       }
       return day + "." + month;
     },
-    renderTasksforUser(currentDate, userID, target) {
-      let component = this;
-      let tasks = USERMAP[userID];
-      let dateInString = component.getDateForAttr(currentDate);
-      if (tasks.length !== 0) {
-        for (let task of tasks) {
-          if (
-            task.planStartDate <= dateInString &&
-            dateInString <= task.planEndDate
-          ) {
-            let newTask = document.createElement("div");
-            newTask.innerHTML = task.subject;
-            newTask.className = "calendar-task";
-            newTask.title = task.planStartDate + " - " + task.planEndDate;
-            target.appendChild(newTask);
-          }
-        }
-      }
-    },
-    createControlPannel(target) {
-      let component = this;
-
-      let buttons = document.querySelector("#buttons");
-      if (buttons) {
-        buttons.remove();
-      }
-
-      let buttondiv = document.createElement("div");
-      buttondiv.id = "buttons";
-      target.appendChild(buttondiv);
-
-      let leftButton = document.createElement("div");
-      buttondiv.appendChild(leftButton);
-      leftButton.innerHTML = "<<";
-      leftButton.id = "left";
-      leftButton.className = "button";
-      leftButton.addEventListener("click", function () {
-        calendarOptions.weekCounter--;
-        component.createCalendar(calendarOptions);
-      });
-
-      let rightButton = document.createElement("div");
-      buttondiv.appendChild(rightButton);
-      rightButton.innerHTML = ">>";
-      rightButton.className = "button";
-      rightButton.id = "right";
-      rightButton.addEventListener("click", function () {
-        calendarOptions.weekCounter++;
-        component.createCalendar(calendarOptions);
-      });
-    },
     getDateForAttr(date) {
       let day = date.getDate();
       let month = date.getMonth() + 1;
-      let year = date.getFullYear();
+      const year = date.getFullYear();
       if (day < 10) {
         day = "0" + day;
       }
@@ -130,5 +209,6 @@ let calendarComponent = (function () {
       }
       return year + "-" + month + "-" + day;
     },
+    parseDate: (date) => new Date(Date.parse(date)),
   };
-})();
+};
