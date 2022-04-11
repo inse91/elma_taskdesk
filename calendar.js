@@ -75,7 +75,7 @@ const calendarComponent = function (args) {
             );
             component.renderTasksforUser(dateArray[i], user.id, div);
           } else {
-            div.innerHTML = user.firstName;
+            div.innerHTML = user.firstName + " " + user.surname;
           }
           rowdiv.append(div);
         }

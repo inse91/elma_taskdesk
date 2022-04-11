@@ -2,34 +2,34 @@ const USERSURL =
   "https://varankin_dev.elma365.ru/api/extensions/2a38760e-083a-4dd0-aebc-78b570bfd3c7/script/users";
 const TASKSURL =
   "https://varankin_dev.elma365.ru/api/extensions/2a38760e-083a-4dd0-aebc-78b570bfd3c7/script/tasks";
-const USERS = getDataFromURL(USERSURL);
-const TASKS = getDataFromURL(TASKSURL);
-function getDataFromURL(url) {
-  let httpRequest = new XMLHttpRequest();
-  httpRequest.open("GET", url, false);
-  httpRequest.send();
-  if (httpRequest.status == 200) {
-    let body = httpRequest.responseText;
-    return JSON.parse(body);
-  } else {
-    alert("ERROR" + httpRequest.status);
-    return null;
-  }
-}
 
-window.onload = function () {
+const getData = async (url1, url2) => {
+  const response1 = await fetch(url1);
+  const data1 = await response1.json();
+
+  const response2 = await fetch(url2);
+  const data2 = await response2.json();
+
+  return { data1: data1, data2: data2 };
+};
+
+let USERS;
+let TASKS;
+
+getData(TASKSURL, USERSURL).then((result) => {
+  TASKS = result.data1;
+  USERS = result.data2;
+  const backlog1 = backlogComponent({
+    divID: "backlog1",
+    tasksArray: TASKS,
+    container: document.querySelector("#optional"),
+  });
+  backlog1.create();
   const cal1 = calendarComponent({
     divID: "calendar1",
     container: document.querySelector("#main"),
     usersArray: USERS,
     tasksArray: TASKS,
   });
-  const backlog1 = backlogComponent({
-    divID: "backlog1",
-    tasksArray: TASKS,
-    container: document.querySelector("#optional"),
-  });
-
   cal1.create();
-  backlog1.create();
-};
+});
