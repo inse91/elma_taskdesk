@@ -17,7 +17,7 @@ const backlogComponent = function (args) {
     fillTasksArr() {
       const component = this;
       const tasks = component.options.tasksArray;
-      for (let task of tasks) {
+      for (const task of tasks) {
         if (!task.executor) {
           component.tasksArr.push(task);
         }
@@ -41,13 +41,12 @@ const backlogComponent = function (args) {
       title.className = "backlogheader";
       backlogdiv.prepend(title);
 
-      let searchBox = this.getSearchBox();
-      title.after(searchBox);
+      title.after(this.getSearchBox());
 
       const tasks = component.tasksArr;
       const keyWord = component.options.searchKeyWord;
-      let taskCounter = 0;
 
+      let taskCounter = 0;
       tasks.forEach((task, index) => {
         taskName = task.subject.toLowerCase();
 

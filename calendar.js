@@ -59,7 +59,7 @@ const calendarComponent = function (args) {
         headerdiv.append(newdiv);
       }
 
-      for (let user of users) {
+      for (const user of users) {
         const rowdiv = document.createElement("div");
         rowdiv.className = "row";
         calendardiv.append(rowdiv);
@@ -123,12 +123,12 @@ const calendarComponent = function (args) {
       component.userMap = new Map();
 
       const users = component.options.usersArray;
-      for (let user of users) {
+      for (const user of users) {
         component.userMap[user.id] = [];
       }
 
       const tasks = component.options.tasksArray;
-      for (let task of tasks) {
+      for (const task of tasks) {
         task.dayGap =
           (component.parseDate(task.planEndDate) -
             component.parseDate(task.planStartDate)) /
@@ -143,7 +143,7 @@ const calendarComponent = function (args) {
       const tasks = component.userMap[userID];
       const dateInString = component.getDateForAttr(currentDate);
       if (tasks.length !== 0) {
-        for (let task of tasks) {
+        for (const task of tasks) {
           if (
             task.planStartDate <= dateInString &&
             dateInString <= task.planEndDate
