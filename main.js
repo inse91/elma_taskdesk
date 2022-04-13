@@ -13,23 +13,20 @@ const getData = async (url1, url2) => {
   return { data1: data1, data2: data2 };
 };
 
-let USERS;
-let TASKS;
-
 getData(TASKSURL, USERSURL).then((result) => {
-  TASKS = result.data1;
-  USERS = result.data2;
+  const tasks = result.data1;
+  const users = result.data2;
   const backlog1 = backlogComponent({
     divID: "backlog1",
-    tasksArray: TASKS,
+    tasksArray: tasks,
     container: document.querySelector("#optional"),
   });
   backlog1.create();
   const cal1 = calendarComponent({
     divID: "calendar1",
     container: document.querySelector("#main"),
-    usersArray: USERS,
-    tasksArray: TASKS,
+    usersArray: users,
+    tasksArray: tasks,
   });
   cal1.create();
 });
