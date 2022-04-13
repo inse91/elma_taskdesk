@@ -16,6 +16,7 @@ const getData = async (url1, url2) => {
 getData(TASKSURL, USERSURL).then((result) => {
   const tasks = result.data1;
   const users = result.data2;
+
   const backlog1 = backlogComponent({
     divID: "backlog1",
     tasksArray: tasks,
